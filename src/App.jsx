@@ -295,7 +295,7 @@ import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
 // Connect to backend (use your deployed backend URL)
-const socket = io("http://localhost:3000");
+const socket = io("https://trackbackend-ntrj.onrender.com");
 
 function App() {
   const [busId, setBusId] = useState("");
