@@ -28,7 +28,7 @@
 
 // }
 
-// export default App
+// // export default App
 
 // import React, { useEffect, useState } from "react";
 // import { io } from "socket.io-client";
@@ -117,31 +117,211 @@
 // export default App;
 
 
+// import React, { useState, useEffect } from "react";
+// import { io } from "socket.io-client";
+
+// const socket = io("https://trackbackend-ntrj.onrender.com"); // Connect to backend
+
+// function App() {
+//   const [busId, setBusId] = useState("");
+//   const [buses, setBuses] = useState({});
+
+//   // Register the bus after entering the bus ID
+//   const registerBus = () => {
+//     if (busId) {
+//       socket.emit("registerBus", busId);
+//       console.log(`Bus ${busId} registered.`);
+//     }
+//   };
+
+//   // Send current location using GPS
+//   const sendLocation = () => {
+//     if (!busId) {
+//       alert("Please enter a Bus ID first!");
+//       return;
+//     }
+//     if ("geolocation" in navigator) {
+//       navigator.geolocation.getCurrentPosition(
+//         (position) => {
+//           const location = {
+//             lat: position.coords.latitude,
+//             lng: position.coords.longitude,
+//           };
+//           socket.emit("updateLocation", { busId, location });
+//           console.log(`Location sent for Bus ${busId}:`, location);
+//         },
+//         (error) => console.error("Error getting location:", error)
+//       );
+//     } else {
+//       alert("Geolocation not supported!");
+//     }
+//   };
+
+//   // Listen for updates from the server
+//   useEffect(() => {
+//      const interval = setInterval(sendLocation, 5000);
+//     socket.on("busLocations", (data) => {
+//       setBuses(data);
+//     });
+
+//     // Clean up the listener on unmount
+//     return () => socket.off("busLocations");
+//   }, []);
+
+//   return (
+//     <div>
+//       <h1>Bus Tracker</h1>
+
+//       {/* Bus Registration */}
+//       <label>Enter Bus ID: </label>
+//       <input
+//         type="text"
+//         value={busId}
+//         onChange={(e) => setBusId(e.target.value.toUpperCase())}
+//       />
+//       <button onClick={registerBus}>Register Bus</button>
+//       <button onClick={sendLocation}>Send Current Location</button>
+
+//       <h2>Active Buses:</h2>
+//       <ul>
+//         {Object.entries(buses).map(([id, location]) => (
+//           <li key={id}>
+//             <strong>Bus {id}</strong> - Latitude: {location.lat}, Longitude:{" "}
+//             {location.lng}
+//           </li>
+//         ))}
+//       </ul>
+//     </div>
+//   );
+// }
+
+// export default App;
+
+// import React, { useState, useEffect } from "react";
+// import { io } from "socket.io-client";
+
+// // Connect to backend
+// const socket = io("http://localhost:3000");
+
+// function App() {
+//   const [busId, setBusId] = useState("");
+//   const [buses, setBuses] = useState({});
+//   const [watchId, setWatchId] = useState(null);
+
+//   // Register the bus after entering the bus ID
+//   const registerBus = () => {
+//     if (busId.trim()) {
+//       socket.emit("registerBus", busId);
+//       console.log(`Bus ${busId} registered.`);
+//       startTracking(); // Start location tracking
+//     } else {
+//       alert("Please enter a valid Bus ID!");
+//     }
+//   };
+
+//   // Start real-time location tracking
+//   const startTracking = () => {
+//     if (!busId.trim()) {
+//       console.error("Bus ID is not set. Tracking not started.");
+//       return;
+//     }
+
+//     if ("geolocation" in navigator) {
+//       const id = navigator.geolocation.watchPosition(
+//         (position) => {
+//           const location = {
+//             lat: position.coords.latitude,
+//             lng: position.coords.longitude,
+//           };
+//           socket.emit("updateLocation", { busId, location });
+//           console.log(`Location sent for Bus ${busId}:`, location);
+//         },
+//         (error) => console.error("Error getting location:", error),
+//         {
+//           enableHighAccuracy: true, // Use GPS for better accuracy
+//           maximumAge: 0, // No caching of old positions
+//           timeout: 1000, // Wait 10 seconds max for location
+//         }
+//       );
+//       setWatchId(id); // Save watch ID for stopping tracking later
+//     } else {
+//       console.error("Geolocation not supported!");
+//     }
+//   };
+
+//   // Stop tracking when component unmounts
+//   useEffect(() => {
+//     socket.on("busLocations", (data) => {
+//       setBuses(data);
+//     });
+
+//     // Clean up when component unmounts
+//     return () => {
+//       socket.off("busLocations");
+//       if (watchId) {
+//         navigator.geolocation.clearWatch(watchId); // Stop tracking
+//       }
+//     };
+//   }, [busId, watchId]);
+
+//   return (
+//     <div>
+//       <h1>Bus Tracker</h1>
+
+//       <label>Enter Bus ID: </label>
+//       <input
+//         type="text"
+//         value={busId}
+//         onChange={(e) => setBusId(e.target.value.toUpperCase())}
+//       />
+//       <button onClick={registerBus}>Register Bus</button>
+
+//       <h2>Active Buses:</h2>
+//       <ul>
+//         {Object.entries(buses).map(([id, location]) => (
+//           <li key={id}>
+//             <strong>Bus {id}</strong> - Latitude: {location.lat}, Longitude:{" "}
+//             {location.lng}
+//           </li>
+//         ))}
+//       </ul>
+//     </div>
+//   );
+// }
+
+// export default App;
+
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("https://trackbackend-ntrj.onrender.com"); // Connect to backend
+// Connect to backend (use your deployed backend URL)
+const socket = io("http://localhost:3000");
 
 function App() {
   const [busId, setBusId] = useState("");
   const [buses, setBuses] = useState({});
+  const [watchId, setWatchId] = useState(null);
 
-  // Register the bus after entering the bus ID
+  // Register the bus and start location tracking
   const registerBus = () => {
-    if (busId) {
+    if (busId.trim()) {
       socket.emit("registerBus", busId);
       console.log(`Bus ${busId} registered.`);
+      startTracking(); // Start tracking when registered
+    } else {
+      alert("Please enter a valid Bus ID!");
     }
   };
 
-  // Send current location using GPS
-  const sendLocation = () => {
-    if (!busId) {
-      alert("Please enter a Bus ID first!");
+  // Start real-time location tracking
+  const startTracking = () => {
+    if (!busId.trim()) {
+      console.error("Bus ID is not set. Tracking not started.");
       return;
     }
+
     if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
+      const id = navigator.geolocation.watchPosition(
         (position) => {
           const location = {
             lat: position.coords.latitude,
@@ -150,28 +330,36 @@ function App() {
           socket.emit("updateLocation", { busId, location });
           console.log(`Location sent for Bus ${busId}:`, location);
         },
-        (error) => console.error("Error getting location:", error)
+        (error) => console.error("Error getting location:", error),
+        {
+          enableHighAccuracy: false, // Use GPS for better accuracy
+          maximumAge: 0, // Prevent caching
+          timeout: 5000, // Wait max 10 seconds
+        }
       );
+      setWatchId(id); // Save watch ID
     } else {
-      alert("Geolocation not supported!");
+      console.error("Geolocation not supported!");
     }
   };
 
-  // Listen for updates from the server
+  // Listen for location updates from the server
   useEffect(() => {
     socket.on("busLocations", (data) => {
-      setBuses(data);
+      console.log("Received bus locations:", data);
+      setBuses(data); // Update frontend
     });
 
-    // Clean up the listener on unmount
-    return () => socket.off("busLocations");
-  }, []);
+    // Cleanup on unmount
+    return () => {
+      socket.off("busLocations");
+      if (watchId) navigator.geolocation.clearWatch(watchId); // Stop tracking
+    };
+  }, [watchId]);
 
   return (
     <div>
       <h1>Bus Tracker</h1>
-
-      {/* Bus Registration */}
       <label>Enter Bus ID: </label>
       <input
         type="text"
@@ -179,7 +367,6 @@ function App() {
         onChange={(e) => setBusId(e.target.value.toUpperCase())}
       />
       <button onClick={registerBus}>Register Bus</button>
-      <button onClick={sendLocation}>Send Current Location</button>
 
       <h2>Active Buses:</h2>
       <ul>
